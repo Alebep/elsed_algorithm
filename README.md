@@ -1,2 +1,1 @@
-
 # LSD detection 
