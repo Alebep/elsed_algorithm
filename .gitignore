@@ -1,0 +1,97 @@
+## Compiled binaries and libraries ##
+*.obj        # Object file (C/C++ compiled unit or 3D model, handled below too)
+*.o          # Object file (Unix/Linux)
+*.lo         # Libtool object file
+*.la         # Libtool library file
+*.slo        # Shared library object
+*.out        # Executable (Unix/Linux)
+*.app        # Application bundle (macOS)
+*.i*86       # Intel 32-bit binaries
+*.x86_64     # Intel 64-bit binaries
+*.exe        # Executable (Windows)
+*.dll        # Dynamic-link library (Windows)
+*.so         # Shared object (Linux)
+*.dylib      # Dynamic library (macOS)
+*.lib        # Static library (Windows)
+*.a          # Static library (Unix/Linux)
+*.pdb        # Program database (debug symbols, Windows)
+*.idb        # Intermediate database (debugging info, Windows)
+*.class      # Compiled Java class file
+
+## Build and temporary logs ##
+*.log
+*.tlog
+*.lastbuildstate
+*.db
+*.opendb
+*.VC.db
+*.VC.VC.opendb
+
+## Visual Studio specific folders ##
+.vs/         # Visual Studio settings
+Debug/
+Release/
+x64/
+x86/
+build/
+[Bb]in/
+[Oo]bj/
+
+## Cache and user-specific files ##
+ipch/                # IntelliSense cache
+*.sdf                # SQL database (IntelliSense)
+*.suo                # Solution user options
+*.user               # User-specific project settings
+*.userosscache
+*.unsuccessfulbuild
+*.cachefile
+*.vcxproj.user       # User-specific Visual C++ project settings
+*.rsuser             # Roslyn user settings
+
+## Other Visual Studio intermediate files ##
+*.ncb
+*.aps
+*.pch                # Precompiled headers
+
+## CMake generated files ##
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+
+## 2D image formats (textures, assets, previews) ##
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.bmp
+*.tiff
+*.tif
+*.psd
+*.xcf
+*.svg
+*.webp
+*.heic
+
+## 3D model formats (assets, meshes, scenes) ##
+*.obj    # 3D model (conflicts with .obj above, used both in C++ and 3D assets)
+*.fbx
+*.dae
+*.3ds
+*.blend
+*.stl
+*.ply
+*.gltf
+*.glb
+*.max
+*.ma
+*.mb
+*.c4d
+
+## Exceptions: keep specific assets under version control ##
+*.png
+*.jpg
+!Assets/**/*.png   # Do not ignore PNGs in Assets folder
+!Assets/**/*.jpg   # Do not ignore JPGs in Assets folder
+
+.vs/
