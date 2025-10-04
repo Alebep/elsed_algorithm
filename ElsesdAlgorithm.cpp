@@ -28,11 +28,13 @@ static void draw_and_save(
 static void print_usage(const char* argv0) {
     std::cout <<
         "Uso:\n"
-        "  " << argv0 << " --method=elsed --image=<caminho>\n"
-        "  " << argv0 << " --method=lsd   --image=<caminho>\n"
+        "  " << argv0 << " --method=elsed      --image=<caminho>\n"
+        "  " << argv0 << " --method=lsd        --image=<caminho>\n"
+        "  " << argv0 << " --method=detectrect --image=<caminho>\n"
         "\n"
         "Opções:\n"
         "  --method=elsed|lsd   Seletor do detector (padrão: elsed)\n"
+        "  --method=elsed|lsd|detectrect   Seletor do detector (padrão: elsed)\n"
         "  --image=<path>       Caminho da imagem de entrada\n";
 }
 
@@ -47,6 +49,11 @@ static int run_elsed(const cv::Mat& img_bgr, const std::string& out_path)
 
     std::vector<elsed::Segment> segs;
     std::vector<float> scores;
+
+    if (gray.type() != CV_8UC1) {
+        gray.convertTo(gray, CV_8UC1);
+    }
+
 
     const auto t0 = std::chrono::high_resolution_clock::now();
     detector.detect(gray, segs, scores);
@@ -103,90 +110,64 @@ static int run_detectrect(const cv::Mat& img_bgr, const std::string& out_path)
         return 1;
     }
 
-    const auto t0 = std::chrono::high_resolution_clock::now();
+    cv::Mat gray;
+    switch (img_bgr.channels()) {
+    case 1:
+        gray = img_bgr.clone();
+        break;
+    case 3:
+        cv::cvtColor(img_bgr, gray, cv::COLOR_BGR2GRAY);
+        break;
+    case 4:
+        cv::cvtColor(img_bgr, gray, cv::COLOR_BGRA2GRAY);
+        break;
+    default:
+        std::cerr << "Número de canais não suportado: " << img_bgr.channels() << "\n";
+        return 1;
+    }
 
-    detrect::apply_masks_not_vcreases(img_bgr, detection_masked,
-        params["canny_threshold1"].asInt(),
-        params["canny_threshold2"].asInt(),
-        params["vertical_dect_kernel"].asInt(),
-        params["large_col_pixel_dect"].asInt(),
-        params["threshold_vertival_rect_decte"].asInt(),
-        params["canny_resize"].asBool(),
-        params["large_lines_intervale"].asInt());    
-    
+    if (gray.type() != CV_8UC1) {
+        gray.convertTo(gray, CV_8UC1);
+    }
+    const auto t0 = std::chrono::high_resolution_clock::now();
+    cv::Mat creaseMask = detrect::vincosOnImg(gray);
     const auto t1 = std::chrono::high_resolution_clock::now();
+    /*/detrect::apply_masks_not_vcreases(
+        gray,
+        nonCreaseMask,
+        30,   // canny_threshold1
+        70,   // canny_threshold2
+        1,    // vertical_dect_kernel
+        6,    // large_col_pixel_dect
+        65,   // threshold_vertival_rect_decte
+        true, // canny_resize
+        35    // large_lines_intervale
+    );*/
 
     const auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count();
     std::cout << "[detectrect] Tempo de detecção: " << ms << " ms\n";
+    std::cout << "[detectrect] Pixels detectados: " << cv::countNonZero(creaseMask) << "\n";
 
-    std::vector<std::pair<cv::Point, cv::Point>> lines;
-   
+    cv::Mat result = img_bgr.clone();
+    const cv::Scalar red(0, 0, 255);
+    result.setTo(red, creaseMask);
+
+    if (!cv::imwrite(out_path, result)) {
+        std::cerr << "Falha ao salvar: " << out_path << "\n";
+        return 1;
+    }
+
+    std::cout << "Resultado salvo em: " << out_path << "\n";
     return 0;
 }
 
 
-int main(int argc, char** argv) {
-    if (argc < 4) {
-        std::cerr << "Uso: " << argv[0] << " <imagem_input> <mascara_binaria> <saida>\n";
-        return 1;
-    }
-
-    std::string imgPath = argv[1];
-    std::string maskPath = argv[2];
-    std::string outPath = argv[3];
-
-    // Lê a imagem (3 canais) e a máscara (1 canal)
-    cv::Mat img = cv::imread(imgPath, cv::IMREAD_COLOR);
-    cv::Mat mask = cv::imread(maskPath, cv::IMREAD_GRAYSCALE);
-
-    if (img.empty()) {
-        std::cerr << "Erro ao carregar imagem: " << imgPath << "\n";
-        return 1;
-    }
-    if (mask.empty()) {
-        std::cerr << "Erro ao carregar máscara: " << maskPath << "\n";
-        return 1;
-    }
-
-    // Garante que a máscara tem o mesmo tamanho da imagem
-    if (mask.size() != img.size()) {
-        std::cerr << "A máscara e a imagem têm tamanhos diferentes.\n";
-        return 1;
-    }
-
-    // Se a máscara não estiver estritamente binária, limiariza (opcional, mas útil)
-    cv::Mat maskBin;
-    cv::threshold(mask, maskBin, 127, 255, cv::THRESH_BINARY);
-
-    // Inverte a máscara
-    cv::Mat maskInv;
-    cv::bitwise_not(maskBin, maskInv); // 0 <-> 255
-
-    // Cria uma cópia da imagem para editar
-    cv::Mat result = img.clone();
-
-    // Define a cor vermelha em BGR (OpenCV usa BGR)
-    cv::Vec3b red(0, 0, 255);
-
-    // Aplica vermelho onde maskInv == 255
-    // Método 1: usando indexação rápida com setTo e máscara
-    result.setTo(red, maskInv);
-
-    // Salva o resultado
-    if (!cv::imwrite(outPath, result)) {
-        std::cerr << "Erro ao gravar saída em: " << outPath << "\n";
-        return 1;
-    }
-
-    std::cout << "Feito! Resultado salvo em: " << outPath << "\n";
-    return 0;
-}
 
 
 int main(int argc, char** argv)
 {
-    std::string method = "elsed"; 
-    std::string image_path = "D:\\Trabalho\\CV\\workdir\\AutoEuropa\\vision1\\2025_capture\\VISION2\\HOLES\\0905252065-61760172\\original_46.jpg";
+    std::string method = "detectrect"; 
+    std::string image_path = "D:\\Trabalho\\CV\\workdir\\AutoEuropa\\vision1\\2025_capture\\VISION2\\HOLES\\0905252065-61760172\\original_364.jpg";
 
     for (int i = 1; i < argc; ++i) {
         std::string a = argv[i];
@@ -219,8 +200,12 @@ int main(int argc, char** argv)
         out_path = "lsd_out.png";
         return run_lsd(img_bgr, out_path);
     }
+    else if (method == "detectrect") {
+        out_path = "detectrect_out.png";
+        return run_detectrect(img_bgr, out_path);
+    }
     else {
-        std::cerr << "Método desconhecido: " << method << " (use 'elsed' ou 'lsd')\n";
+        std::cerr << "Método desconhecido: " << method << " (use 'elsed', 'lsd' ou 'detectrect')\n";
         print_usage(argv[0]);
         return 2;
     }

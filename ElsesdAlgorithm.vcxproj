@@ -127,12 +127,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="detectrect.cpp" />
     <ClCompile Include="detetion.cpp" />
     <ClCompile Include="elsed.cpp" />
     <ClCompile Include="ElsesdAlgorithm.cpp" />
     <ClCompile Include="lsd.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="detectrect.hpp" />
     <ClInclude Include="detetion.hpp" />
     <ClInclude Include="elsed.hpp" />
     <ClInclude Include="lsd.hpp" />
