@@ -180,17 +180,5 @@ namespace detrect {
 
         if (resize)
             cv::resize(rectMask, rectMask, cv::Size(cols, rows));
-
-        cv::bitwise_not(rectMask, rectMask);
-
-        cv::bitwise_and(detMask, rectMask, detMask);
-        /*//Remover antes do commit
-        cv::Mat copy_rot_det;
-        cv::resize(detMask, copy_rot_det, cv::Size(), 0.25, 0.25);
-        cv::imshow("Mascara com vincos eliminados", copy_rot_det);
-        cv::waitKey(0);
-        cv::destroyWindow("Mascara com vincos eliminados");
-        //fim remover*/
-        cv::rotate(detMask, detMask, cv::ROTATE_90_COUNTERCLOCKWISE);
     }
 }

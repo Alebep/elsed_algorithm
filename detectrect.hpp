@@ -68,7 +68,7 @@ namespace detrect {
 
 	/*
 	* @brief Esta função pega as rectas da imagem e deteta a recta que marca o inicio de um vinco e
-	* a recta que demarca o fim de um vinco.
+	* a recta que demarca o fim de um vinco, sem inversão, essa não é a usada em produção.
 	*
 	*  O objetivo é demarcar onde começa e onde termina cada vinco.
 	*
